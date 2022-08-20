@@ -1,5 +1,5 @@
 ---
-- name: (k8s) install precursor pacakages
+- name: (k8s) install precursor packages
   apt:
     name: apt-transport-https
     state: present
@@ -37,3 +37,61 @@
     - rule: allow
       port: 6443
       protocol: tcp
+
+- name: (k8s) configure master(s)
+  block:
+
+    - name: (k8s) initialize cluster
+      shell: "kubeadm init --cri-socket=/run/containerd/containerd.sock --node-name={{ ansible_default_ipv4.address }}"
+
+    - name: (k8s) create configuration directory
+      become_user: admin
+      become: yes
+      file:
+        path: $HOME/.kube
+        state: directory
+        mode: "0755"
+
+    - name: (k8s) copy cluster configuration
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/admin/.kube/config
+        remote_src: yes
+        owner: admin
+        group: sudo
+
+    - name: (k8s) wait until cluster is ready
+      command: kubectl cluster-info
+      register: cluster_info
+      until: ("Kubernetes control plane" in cluster_info.stdout) and ("is running" in cluster_info.stdout)
+      become_user: admin
+      become: no
+      retries: 30
+      delay: 20
+      args:
+        chdir: $HOME
+
+    - name: (k8s) install network
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      become_user: admin
+      become: yes
+      args:
+        chdir: $HOME
+
+  when: "'masters' in group_names"
+
+- name: (k8s) configure worker(s)
+  block:
+
+    - name: (k8s) generate join command
+      shell: kubeadm token create --print-join-command
+      register: join_command_output
+      delegate_to: "{{ groups['masters'][0] }}"
+
+    - name: (k8s) add worker(s)
+      shell: "{{ join_command_output.stdout }} --node-name={{ ansible_default_ipv4.address }} > node_joined.log"
+      args:
+        chdir: $HOME
+        creates: node_joined.log
+
+  when: "'workers' in group_names"

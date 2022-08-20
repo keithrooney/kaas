@@ -21,14 +21,7 @@
     sleep: 30
   connection: local
 
-#- name: configure hostname(s)
-#  hostname:
-#    name: "{{ item }}"
-#  with_items:
-#    - "hostnamectl set-hostname {{ server.vultr_server.v4_main_ip }}"
-#    - "hostnamectl set-hostname {{ server.vultr_server.v4_main_ip }} --pretty"
-
-- name: "add host {{ server.vultr_server.v4_main_ip }} to group"
+- name: "add host {{ server.vultr_server.v4_main_ip }} to group {{ servrd_server_group }}"
   ansible.builtin.add_host:
     hostname: "{{ server.vultr_server.v4_main_ip }}"
-    groups: servers
+    groups: "{{ servrd_server_group | mandatory }}"

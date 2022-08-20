@@ -1,0 +1,40 @@
+---
+- name: install aptitude
+  apt:
+    pkg: aptitude
+    state: present
+
+- name: update packages
+  apt:
+    update_cache: no
+
+- name: upgrade packages
+  apt:
+    upgrade: safe
+
+- name: autoremove packages
+  apt:
+    autoremove: yes
+
+- name: install packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - cron
+      - ufw
+
+- name: configure firewall default policy
+  ufw:
+    state: enabled
+    policy: reject
+
+- name: configure firewall default port(s)
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.protocol }}"
+  with_items:
+    - rule: allow
+      port: 22
+      protocol: tcp

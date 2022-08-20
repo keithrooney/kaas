@@ -1,0 +1,11 @@
+---
+- name: (crictl) download files
+  get_url:
+    url: https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.22.0/crictl-v1.22.0-linux-amd64.tar.gz
+    dest: /opt
+
+- name: (crictl) unzip packages
+  unarchive:
+    src: /opt/crictl-v1.22.0-linux-amd64.tar.gz
+    dest: /usr/local/bin
+    remote_src: yes

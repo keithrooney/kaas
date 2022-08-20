@@ -1,0 +1,70 @@
+---
+- name: install packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - conntrack
+      - socat
+      - wget
+
+- name: add configurations
+  copy:
+    content: "{{ item.value }}"
+    dest: "{{ item.path }}"
+  with_items:
+    - path: "/etc/modules-load.d/k8s.conf"
+      value: |
+        overlay
+        br_netfilter
+    - path: "/etc/sysctl.d/k8s.conf"
+      value: |
+        net.bridge.bridge-nf-call-iptables  = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.ipv4.ip_forward                 = 1
+
+- name: override grub config
+  lineinfile:
+    path: "/etc/default/grub"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: '^GRUB_CMDLINE_LINUX=""'
+      line: 'GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=1"'
+
+- name: execute system commands
+  shell: "{{ item.command }}"
+  with_items:
+    - command: "swapoff -a"
+    - command: "modprobe overlay"
+    - command: "modprobe br_netfilter"
+    - command: "sysctl --system"
+    - command: "update-grub"
+
+- name: ensure swap is permantly disabled
+  replace:
+    path: /etc/fstab
+    regexp: '^\/swapfile'
+    replace: '# /swapfile'
+
+- name: reboot machine
+  reboot:
+
+- name: install runc
+  import_tasks: runc.yml
+
+- name: install cni
+  import_tasks: cni.yml
+
+- name: install crictl
+  import_tasks: crictl.yml
+
+- name: install containerd
+  import_tasks: containerd.yml
+
+- name: install k8s
+  import_tasks: k8s.yml
+
+- name: force daemon reload
+  systemd:
+    daemon_reload: yes

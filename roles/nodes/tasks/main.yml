@@ -1,0 +1,34 @@
+---
+- name: "generate server name"
+  ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"
+  register: shell_output
+
+- name: "provision server {{ shell_output.stdout }}.frankfurt.servrd.com"
+  ngine_io.vultr.vultr_server:
+    name: "{{ shell_output.stdout }}.frankfurt.servrd.com"
+    os: "Ubuntu 20.04 LTS x64"
+    plan: "4096 MB RAM,80 GB SSD,3.00 TB BW"
+    region: "Frankfurt"
+    ssh_key: "servrd - root - public key"
+  register: server
+
+- name: wait for server to be ready
+  ansible.builtin.wait_for:
+    port: 22
+    host: '{{ server.vultr_server.v4_main_ip }}'
+    delay: 240
+    timeout: 800
+    sleep: 30
+  connection: local
+
+#- name: configure hostname(s)
+#  hostname:
+#    name: "{{ item }}"
+#  with_items:
+#    - "hostnamectl set-hostname {{ server.vultr_server.v4_main_ip }}"
+#    - "hostnamectl set-hostname {{ server.vultr_server.v4_main_ip }} --pretty"
+
+- name: "add host {{ server.vultr_server.v4_main_ip }} to group"
+  ansible.builtin.add_host:
+    hostname: "{{ server.vultr_server.v4_main_ip }}"
+    groups: servers

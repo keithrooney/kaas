@@ -1,0 +1,8 @@
+---
+- name: (runc) download files
+  get_url:
+    url: "https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64"
+    dest: /opt
+
+- name: (runc) install
+  shell: "install -m 755 /opt/runc.amd64 /usr/local/sbin/runc"

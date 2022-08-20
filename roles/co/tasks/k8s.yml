@@ -1,0 +1,39 @@
+---
+- name: (k8s) install precursor pacakages
+  apt:
+    name: apt-transport-https
+    state: present
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+
+- name: (k8s) add signing key
+  get_url:
+    url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+    dest: "/usr/share/keyrings/kubernetes-archive-keyring.gpg"
+
+- name: (k8s) add repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+    filename: kubernetes
+    state: present
+
+- name: (k8s) install library packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - kubelet
+      - kubeadm
+      - kubectl
+
+- name: (k8s) configure port(s)
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.protocol }}"
+  with_items:
+    - rule: allow
+      port: 6443
+      protocol: tcp

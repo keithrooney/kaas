@@ -1,2 +1,5 @@
 ---
-# vars file for co
+cni:
+  version: "v0.8.2"
+k8s:
+  version: "v1.24.4"

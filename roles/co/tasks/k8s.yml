@@ -42,7 +42,10 @@
   block:
 
     - name: (k8s) initialize cluster
-      shell: "kubeadm init --cri-socket=/run/containerd/containerd.sock --node-name={{ ansible_default_ipv4.address }}"
+      shell: "kubeadm init --cri-socket=/run/containerd/containerd.sock --apiserver-advertise-address={{ ansible_default_ipv4.address }} --node-name={{ ansible_default_ipv4.address }} --pod-network-cidr=10.244.0.0/16 > kubeadm.log"
+      args:
+        chdir: $HOME
+        creates: kubeadm.log
 
     - name: (k8s) create configuration directory
       become_user: admin

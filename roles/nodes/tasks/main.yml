@@ -3,13 +3,13 @@
   ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"
   register: shell_output
 
-- name: "provision server {{ shell_output.stdout }}.frankfurt.servrd.com"
+- name: "provision server {{ shell_output.stdout }}.frankfurt.quartermaster.com"
   ngine_io.vultr.vultr_server:
-    name: "{{ shell_output.stdout }}.frankfurt.servrd.com"
+    name: "{{ shell_output.stdout }}.frankfurt.quartermaster.com"
     os: "Ubuntu 20.04 LTS x64"
     plan: "4096 MB RAM,80 GB SSD,3.00 TB BW"
     region: "Frankfurt"
-    ssh_key: "servrd - root - public key"
+    ssh_key: "quartermaster - root - public key"
   register: server
 
 - name: wait for server to be ready
@@ -21,7 +21,7 @@
     sleep: 30
   connection: local
 
-- name: "add host {{ server.vultr_server.v4_main_ip }} to group {{ servrd_server_group }}"
+- name: "add host {{ server.vultr_server.v4_main_ip }} to group {{ quartermaster_server_group }}"
   ansible.builtin.add_host:
     hostname: "{{ server.vultr_server.v4_main_ip }}"
-    groups: "{{ servrd_server_group | mandatory }}"
+    groups: "{{ quartermaster_server_group | mandatory }}"

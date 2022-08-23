@@ -1,5 +1,5 @@
 ---
-- hosts: "{{ servrd_server_group | default('all') }}"
+- hosts: "{{ quartermaster_server_group | default('all') }}"
   remote_user: root
   roles:
     - users

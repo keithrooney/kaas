@@ -2,12 +2,12 @@
 - name: create master
   import_playbook: create_server.yml
   vars:
-    servrd_server_group: masters
+    quartermaster_server_group: masters
 
 - name: create worker
   import_playbook: create_server.yml
   vars:
-    servrd_server_group: workers
+    quartermaster_server_group: workers
 
 - name: reconcile co
   import_playbook: reconcile_co.yml

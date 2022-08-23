@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: "{{ quartermaster_server_group | default('all') }}"
   remote_user: admin
   become: yes
   roles:

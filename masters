@@ -1,8 +1,5 @@
 [masters]
-80.240.24.219
 
-[workers]
-45.76.80.181
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3

@@ -4,10 +4,5 @@
   vars:
     quartermaster_server_group: masters
 
-- name: create worker
-  import_playbook: create_server.yml
-  vars:
-    quartermaster_server_group: workers
-
-- name: reconcile co
-  import_playbook: reconcile_co.yml
+- name: add worker
+  import_playbook: add_worker.yml

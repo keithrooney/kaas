@@ -1,0 +1,8 @@
+---
+- name: create worker
+  import_playbook: create_server.yml
+  vars:
+    quartermaster_server_group: workers
+
+- name: reconcile co
+  import_playbook: reconcile_co.yml

@@ -3,9 +3,9 @@
   ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"
   register: shell_output
 
-- name: "provision server {{ shell_output.stdout }}.frankfurt.quartermaster.com"
+- name: "provision server {{ shell_output.stdout }}.quartermaster.io"
   ngine_io.vultr.vultr_server:
-    name: "{{ shell_output.stdout }}.frankfurt.quartermaster.com"
+    name: "{{ shell_output.stdout }}.quartermaster.io"
     os: "Ubuntu 20.04 LTS x64"
     plan: "4096 MB RAM,80 GB SSD,3.00 TB BW"
     region: "Frankfurt"

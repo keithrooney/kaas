@@ -1,0 +1,12 @@
+---
+- name: install runc
+  import_tasks: runc.yml
+
+- name: install cni
+  import_tasks: cni.yml
+
+- name: install crictl
+  import_tasks: crictl.yml
+
+- name: install containerd
+  import_tasks: containerd.yml

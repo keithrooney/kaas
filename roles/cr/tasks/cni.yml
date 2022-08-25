@@ -6,11 +6,11 @@
 
 - name: (cni) download files
   get_url:
-    url: "https://github.com/containernetworking/plugins/releases/download/{{ cni.version }}/cni-plugins-linux-amd64-{{ cni.version }}.tgz"
+    url: "https://github.com/containernetworking/plugins/releases/download/v{{ cni.version }}/cni-plugins-linux-amd64-v{{ cni.version }}.tgz"
     dest: /opt
 
 - name: (cni) install
   unarchive:
-    src: "/opt/cni-plugins-linux-amd64-{{ cni.version }}.tgz"
+    src: "/opt/cni-plugins-linux-amd64-v{{ cni.version }}.tgz"
     dest: /opt/cni/bin
     remote_src: yes

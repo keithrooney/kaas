@@ -9,7 +9,7 @@
 
 - name: (k8s) download binaries
   get_url:
-    url: "https://storage.googleapis.com/kubernetes-release/release/{{ k8s.version }}/bin/linux/amd64/{{ item }}"
+    url: "https://storage.googleapis.com/kubernetes-release/release/v{{ kubernetes.version }}/bin/linux/amd64/{{ item }}"
     dest: /usr/local/bin
   with_items:
     - kubeadm

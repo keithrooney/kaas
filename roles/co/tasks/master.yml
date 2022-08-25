@@ -1,11 +1,11 @@
 ---
-- name: (k8s) initialize cluster
+- name: initialize cluster
   shell: "kubeadm init --cri-socket=/run/containerd/containerd.sock --apiserver-advertise-address={{ ansible_default_ipv4.address }} --node-name={{ ansible_default_ipv4.address }} --pod-network-cidr=10.244.0.0/16 > kubeadm.log"
   args:
     chdir: $HOME
     creates: kubeadm.log
 
-- name: (k8s) create configuration directory
+- name: create configuration directory
   become_user: admin
   become: yes
   file:
@@ -13,7 +13,7 @@
     state: directory
     mode: "0755"
 
-- name: (k8s) copy cluster configuration
+- name: copy cluster configuration
   copy:
     src: /etc/kubernetes/admin.conf
     dest: /home/admin/.kube/config
@@ -21,7 +21,7 @@
     owner: admin
     group: sudo
 
-- name: (k8s) wait until cluster is ready
+- name: wait until cluster is ready
   command: kubectl cluster-info
   register: cluster_info
   until: ("Kubernetes control plane" in cluster_info.stdout) and ("is running" in cluster_info.stdout)
@@ -32,7 +32,7 @@
   args:
     chdir: $HOME
 
-- name: (k8s) install network
+- name: install network
   shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
   become_user: admin
   become: yes

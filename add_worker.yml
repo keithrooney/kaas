@@ -4,9 +4,11 @@
   vars:
     quartermaster_server_group: workers
 
-- name: reconcile cr
-  import_playbook: reconcile_cr.yml
-
-- name: reconcile co
-  import_playbook: reconcile_co.yml
-
+- hosts: workers
+  remote_user: admin
+  become: yes
+  roles:
+    - cr
+    - co
+  vars:
+    ansible_ssh_private_key_file: /home/krooney/.ssh/admin/id_ecdsa

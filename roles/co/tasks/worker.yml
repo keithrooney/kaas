@@ -1,0 +1,11 @@
+---
+- name: (k8s) generate join command
+  shell: kubeadm token create --print-join-command
+  register: join_command_output
+  delegate_to: "{{ groups['masters'][0] }}"
+
+- name: (k8s) add worker(s)
+  shell: "{{ join_command_output.stdout }} --node-name={{ ansible_default_ipv4.address }} > node_joined.log"
+  args:
+    chdir: $HOME
+    creates: node_joined.log

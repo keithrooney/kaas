@@ -1,8 +1,6 @@
 [masters]
-45.77.55.249
 
 [workers]
-108.61.178.241
 
 [frankfurt:children]
 masters

@@ -1,18 +1,24 @@
 ---
-- name: "generate server name"
+- name: validate parameters
+  assert:
+    that:
+      - "'{{ node_region }}' in ['frankfurt']"
+      - "'{{ node_type }}' in ['worker', 'master']"
+
+- name: generate name
   ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"
   register: shell_output
 
-- name: "provision server {{ shell_output.stdout }}.quartermaster.io"
+- name: provision node
   ngine_io.vultr.vultr_server:
     name: "{{ shell_output.stdout }}.quartermaster.io"
     os: "Ubuntu 20.04 LTS x64"
     plan: "4096 MB RAM,80 GB SSD,3.00 TB BW"
-    region: "Frankfurt"
+    region: "{{ vultr['regions'][node_region]['name'] }}"
     ssh_key: "quartermaster - root - public key"
   register: server
 
-- name: wait for server to be ready
+- name: wait for node to be ready
   ansible.builtin.wait_for:
     port: 22
     host: '{{ server.vultr_server.v4_main_ip }}'
@@ -21,7 +27,7 @@
     sleep: 30
   connection: local
 
-- name: "add host {{ server.vultr_server.v4_main_ip }} to group {{ quartermaster_server_group }}"
+- name: "add node {{ server.vultr_server.v4_main_ip }} to group {{ node_groups if node_groups else node_type + 's' }}"
   ansible.builtin.add_host:
     hostname: "{{ server.vultr_server.v4_main_ip }}"
-    groups: "{{ quartermaster_server_group | mandatory }}"
+    groups: "{{ node_groups if node_groups else node_type + 's' }}"

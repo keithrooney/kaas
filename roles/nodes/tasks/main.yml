@@ -27,7 +27,7 @@
     sleep: 30
   connection: local
 
-- name: "add node {{ server.vultr_server.v4_main_ip }} to group {{ node_groups if node_groups else node_type + 's' }}"
+- name: "add node {{ server.vultr_server.v4_main_ip }} to group {{ node_groups | mandatory }}"
   ansible.builtin.add_host:
     hostname: "{{ server.vultr_server.v4_main_ip }}"
-    groups: "{{ node_groups if node_groups else node_type + 's' }}"
+    groups: "{{ node_groups }}"

@@ -6,6 +6,7 @@
   vars:
     node_region: frankfurt
     node_groups: ["new_workers", "workers"]
+    node_server: "4x2"
 
 - hosts: new_workers
   remote_user: root

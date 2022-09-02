@@ -2,7 +2,12 @@
 - name: validate parameters
   assert:
     that:
-      - "'{{ node_region }}' in ['frankfurt']"
+      - "'{{ node_region }}' is defined"
+      - "'{{ node_region }}' in {{ vultr.regions }}"
+      - "'{{ node_server }}' is defined"
+      - "'{{ node_server }}' in {{ vultr.servers }}"
+      - "{{ node_groups }} is defined"
+      - "{{ node_groups | length }} >= 1"
 
 - name: generate name
   ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"
@@ -12,7 +17,7 @@
   ngine_io.vultr.vultr_server:
     name: "{{ shell_output.stdout }}.quartermaster.io"
     os: "Ubuntu 20.04 LTS x64"
-    plan: "4096 MB RAM,80 GB SSD,3.00 TB BW"
+    plan: "{{ vultr['servers'][node_server]['name'] }}"
     region: "{{ vultr['regions'][node_region]['name'] }}"
     ssh_key: "quartermaster - root - public key"
   register: server
@@ -26,7 +31,7 @@
     sleep: 30
   connection: local
 
-- name: "add node {{ server.vultr_server.v4_main_ip }} to group {{ node_groups | mandatory }}"
+- name: "add node {{ server.vultr_server.v4_main_ip }} to group {{ node_groups }}"
   ansible.builtin.add_host:
     hostname: "{{ server.vultr_server.v4_main_ip }}"
     groups: "{{ node_groups }}"

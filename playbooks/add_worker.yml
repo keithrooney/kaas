@@ -2,7 +2,7 @@
 - hosts: localhost
   gather_facts: no
   roles:
-    - { role: nodes, node_type: worker }
+    - nodes
   vars:
     node_region: frankfurt
     node_groups: ["new_workers", "workers"]

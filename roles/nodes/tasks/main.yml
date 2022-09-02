@@ -3,7 +3,6 @@
   assert:
     that:
       - "'{{ node_region }}' in ['frankfurt']"
-      - "'{{ node_type }}' in ['worker', 'master']"
 
 - name: generate name
   ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"

@@ -1,0 +1,68 @@
+---
+- name: provision group(s)
+  group:
+    name: etcd
+    system: yes
+
+- name: provision user(s)
+  user:
+    name: etcd
+    group: etcd
+    shell: /sbin/nologin
+    system: yes
+
+- name: create directories
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    state: directory
+  with_items:
+    - path: /opt/etcd
+      owner: root
+      group: root
+    - path: /var/lib/etcd/
+      owner: etcd
+      group: etcd
+    - path: /etc/etcd
+      owner: etcd
+      group: etcd
+    - path: /etc/systemd/system
+      owner: root
+      group: root
+
+- name: download packages
+  get_url:
+    url: "https://storage.googleapis.com/etcd/{{ etcd.version }}/etcd-{{ etcd.version }}-linux-amd64.tar.gz"
+    dest: "/opt/etcd/etcd-{{ etcd.version }}-linux-amd64.tar.gz"
+
+- name: unzip packages
+  unarchive:
+    src: "/opt/etcd/etcd-{{ etcd.version }}-linux-amd64.tar.gz"
+    dest: "/opt/etcd"
+    remote_src: yes
+
+- name: relocate packages
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: yes
+    mode: '0755'
+  with_items:
+    - src: "/opt/etcd/etcd-{{ etcd.version }}-linux-amd64/etcd"
+      dest: /usr/local/bin
+    - src: "/opt/etcd/etcd-{{ etcd.version }}-linux-amd64/etcdctl"
+      dest: /usr/local/bin
+    - src: "/opt/etcd/etcd-{{ etcd.version }}-linux-amd64/etcdutl"
+      dest: /usr/local/bin
+
+- name: add service
+  copy:
+    src: files/etc/systemd/system/etcd.service
+    dest: /etc/systemd/system/etcd.service
+
+- name: reload daemon
+  ansible.builtin.systemd:
+    name: etcd
+    state: started
+    daemon_reload: yes

@@ -3,6 +3,8 @@
   gather_facts: no
   roles:
     - nodes
+    - nodes
+    - nodes
   vars:
     node_region: frankfurt
     node_server: "2x1"

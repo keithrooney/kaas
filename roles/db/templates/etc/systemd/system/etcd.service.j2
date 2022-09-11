@@ -10,7 +10,11 @@ Type=notify
 Environment=ETCD_DATA_DIR=/var/lib/etcd
 Environment=ETCD_NAME=etcd-{{ ansible_host }}
 Environment=ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ ansible_host }}:2380
+Environment=ETCD_LISTEN_PEER_URLS=http://{{ ansible_host }}:2380
+Environment=ETCD_LISTEN_CLIENT_URLS=http://{{ ansible_host }}:2379,http://127.0.0.1:2379
+Environment=ETCD_ADVERTISE_CLIENT_URLS=http://{{ ansible_host }}:2379
 Environment=ETCD_INITIAL_CLUSTER={% for host in groups['db']  %}etcd-{{ host }}=http://{{ host }}:2380{% if not loop.last %},{% endif %}{% endfor %}
+Environment=ETCD_INITIAL_CLUSTER_STATE=new
 ExecStart=/usr/local/bin/etcd
 Restart=always
 RestartSec=10s

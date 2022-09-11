@@ -3,24 +3,25 @@
   gather_facts: no
   roles:
     - nodes
+    - nodes
+    - nodes
   vars:
     node_region: frankfurt
-    node_groups: ["new_workers", "workers"]
-    node_server: "4x2"
+    node_server: "2x1"
+    node_groups: ["db"]
 
-- hosts: new_workers
+- hosts: db
   remote_user: root
   roles:
     - users
   vars:
     ansible_ssh_private_key_file: /home/krooney/.ssh/root/id_ecdsa
 
-- hosts: new_workers
+- hosts: db
   remote_user: admin
   become: yes
   roles:
     - os
-    - cr
-    - co
+    - db
   vars:
     ansible_ssh_private_key_file: /home/krooney/.ssh/admin/id_ecdsa

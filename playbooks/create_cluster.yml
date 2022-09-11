@@ -7,6 +7,7 @@
     - { role: nodes, node_groups: ["workers"] }
   vars:
     node_region: frankfurt
+    node_server: "4x2"
 
 - hosts: all
   remote_user: root

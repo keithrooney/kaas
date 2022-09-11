@@ -2,6 +2,8 @@
 
 [workers]
 
+[db]
+
 [frankfurt:children]
 masters
 workers

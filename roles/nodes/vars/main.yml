@@ -9,4 +9,4 @@ vultr:
     2x1:
       name: "2048 MB RAM,55 GB SSD,2.00 TB BW"
     4x2:
-      plan: "4096 MB RAM,80 GB SSD,3.00 TB BW"
+      name: "4096 MB RAM,80 GB SSD,3.00 TB BW"

@@ -22,5 +22,6 @@
     - os
     - cr
     - co
+    - worker
   vars:
     ansible_ssh_private_key_file: /home/krooney/.ssh/admin/id_ecdsa

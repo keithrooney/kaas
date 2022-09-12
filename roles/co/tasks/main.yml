@@ -117,13 +117,5 @@
       port: 6443
       protocol: tcp
 
-- name: configure master(s)
-  import_tasks: master.yml
-  when: "'masters' in group_names"
-
-- name: configure worker(s)
-  import_tasks: worker.yml
-  when: "'workers' in group_names"
-
 - name: reboot machine
   reboot:

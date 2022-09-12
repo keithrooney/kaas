@@ -9,19 +9,39 @@
     node_region: frankfurt
     node_server: "4x2"
 
-- hosts: all
+- hosts:
+    - masters
+    - workers
   remote_user: root
   roles:
     - users
   vars:
     ansible_ssh_private_key_file: /home/krooney/.ssh/root/id_ecdsa
 
-- hosts: all
+- hosts:
+    - masters
+    - workers
   remote_user: admin
   become: yes
   roles:
     - os
     - cr
     - co
+  vars:
+    ansible_ssh_private_key_file: /home/krooney/.ssh/admin/id_ecdsa
+
+- hosts: masters
+  remote_user: admin
+  become: yes
+  roles:
+    - master
+  vars:
+    ansible_ssh_private_key_file: /home/krooney/.ssh/admin/id_ecdsa
+
+- hosts: workers
+  remote_user: admin
+  become: yes
+  roles:
+    - worker
   vars:
     ansible_ssh_private_key_file: /home/krooney/.ssh/admin/id_ecdsa

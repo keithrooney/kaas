@@ -25,8 +25,8 @@
       owner: etcd
       group: etcd
     - path: /etc/etcd
-      owner: etcd
-      group: etcd
+      owner: root
+      group: root
     - path: /etc/systemd/system
       owner: root
       group: root
@@ -69,10 +69,15 @@
       port: 2379
       protocol: tcp
 
-- name: add service
+- name: add system configs
   template:
-    src: etc/systemd/system/etcd.service.j2
-    dest: /etc/systemd/system/etcd.service
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - src: etc/etcd/etcd.conf.yml.j2
+      dest: /etc/etcd/etcd.conf.yml
+    - src: etc/systemd/system/etcd.service.j2
+      dest: /etc/systemd/system/etcd.service
 
 - name: reload daemon
   ansible.builtin.systemd:

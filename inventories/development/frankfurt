@@ -3,6 +3,8 @@
 [workers]
 
 [db]
+45.32.152.156
+45.77.55.151
 
 [frankfurt:children]
 masters

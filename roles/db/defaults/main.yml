@@ -1,5 +1,3 @@
 ---
 db:
   version: "v3.5.0"
-  ssl:
-    wd: ~/.quartermaster/db/ssl

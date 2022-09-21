@@ -7,21 +7,21 @@ name: etcd-{{ ansible_host }}
 data-dir: /var/lib/etcd
 
 # List of comma separated URLs to listen on for peer traffic.
-listen-peer-urls: https://{{ ansible_host }}:2380
+listen-peer-urls: http{% if ssl.stat.exists %}s{% endif %}://{{ ansible_host }}:2380
 
 # List of comma separated URLs to listen on for client traffic.
-listen-client-urls: https://{{ ansible_host }}:2379,https://127.0.0.1:2379
+listen-client-urls: http{% if ssl.stat.exists %}s{% endif %}://{{ ansible_host }}:2379,http{% if ssl.stat.exists %}s{% endif %}://127.0.0.1:2379
 
 # List of this member's peer URLs to advertise to the rest of the cluster.
 # The URLs needed to be a comma-separated list.
-initial-advertise-peer-urls: https://{{ ansible_host }}:2380
+initial-advertise-peer-urls: http{% if ssl.stat.exists %}s{% endif %}://{{ ansible_host }}:2380
 
 # List of this member's client URLs to advertise to the public.
 # The URLs needed to be a comma-separated list.
-advertise-client-urls: https://{{ ansible_host }}:2379
+advertise-client-urls: http{% if ssl.stat.exists %}s{% endif %}://{{ ansible_host }}:2379
 
 # Initial cluster configuration for bootstrapping.
-initial-cluster: {% for host in groups['db']  %}etcd-{{ host }}=https://{{ host }}:2380{% if not loop.last %},{% endif %}{% endfor %}
+initial-cluster: {% for host in groups['db']  %}etcd-{{ host }}=http{% if ssl.stat.exists %}s{% endif %}://{{ host }}:2380{% if not loop.last %},{% endif %}{% endfor %}
 
 # Initial cluster token for the etcd cluster during bootstrap.
 initial-cluster-token: 'etcd-cluster'
@@ -34,23 +34,23 @@ proxy: 'off'
 
 client-transport-security:
   # Path to the client server TLS cert file.
-  cert-file: /etc/etcd/ssl/server.crt
+  cert-file: {% if ssl.stat.exists %}/etc/etcd/ssl/server.crt{% endif %}
 
   # Path to the client server TLS key file.
-  key-file: /etc/etcd/ssl/server.key
+  key-file: {% if ssl.stat.exists %}/etc/etcd/ssl/server.key{% endif %}
 
   # Path to the client server TLS trusted CA cert file.
-  trusted-ca-file: /etc/etcd/ssl/ca.crt
+  trusted-ca-file: {% if ssl.stat.exists %}/etc/etcd/ssl/ca.crt{% endif %}
 
 peer-transport-security:
   # Path to the peer server TLS cert file.
-  cert-file: /etc/etcd/ssl/server.crt
+  cert-file: {% if ssl.stat.exists %}/etc/etcd/ssl/server.crt{% endif %}
 
   # Path to the peer server TLS key file.
-  key-file: /etc/etcd/ssl/server.key
+  key-file: {% if ssl.stat.exists %}/etc/etcd/ssl/server.key{% endif %}
 
   # Path to the peer server TLS trusted CA cert file.
-  trusted-ca-file: /etc/etcd/ssl/ca.crt
+  trusted-ca-file: {% if ssl.stat.exists %}/etc/etcd/ssl/ca.crt{% endif %}
 
 # Enable debug-level logging for etcd.
 log-level: debug

@@ -1,0 +1,119 @@
+---
+# Enable TLS communication
+# https://www.digitalocean.com/community/tutorials/how-to-set-up-and-secure-an-etcd-cluster-with-ansible-on-ubuntu-18-04#step-9-obtaining-the-private-ip-addresses-of-managed-nodes
+
+- name: create directories
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    state: directory
+  with_items:
+    - path: /etc/etcd/ssl
+      owner: root
+      group: root
+
+- name: generate certificates
+  delegate_to: localhost
+  run_once: True
+  become: no
+  block:
+
+    - name: create directories
+      file:
+        path: "{{ ssl.wd }}/artifacts/{{ item }}"
+        state: directory
+      with_items: "{{ groups['db'] }}"
+
+    - name: generate private key(s)
+      openssl_privatekey:
+        path: "{{ ssl.wd }}/artifacts/{{ item }}/server.key"
+        type: RSA
+        size: 4096
+        force: yes
+      with_items: "{{ groups['db'] }}"
+
+    - name: generate csr(s)
+      openssl_csr:
+        path: "{{ ssl.wd }}/artifacts/{{ item }}/server.csr"
+        privatekey_path: "{{ ssl.wd }}/artifacts/{{ item }}/server.key"
+        common_name: "{{ item }}"
+        key_usage:
+          - digitalSignature
+        extended_key_usage:
+          - serverAuth
+        subject_alt_name:
+          - IP:{{ item }}
+          - IP:127.0.0.1
+        force: yes
+      with_items: "{{ groups['db'] }}"
+
+    - name: generate ca private key
+      openssl_privatekey:
+        path: "{{ ssl.wd }}/artifacts/ca.key"
+        type: RSA
+        size: 4096
+        force: yes
+
+    - name: generate ca csr
+      openssl_csr:
+        path: "{{ ssl.wd }}/artifacts/ca.csr"
+        privatekey_path: "{{ ssl.wd }}/artifacts/ca.key"
+        common_name: ca
+        organization_name: "Quartermaster"
+        basic_constraints:
+          - CA:TRUE
+          - pathlen:1
+        basic_constraints_critical: True
+        key_usage:
+          - keyCertSign
+          - digitalSignature
+        force: yes
+      with_items: "{{ groups['db'] }}"
+
+    - name: generate self-signed ca certificates
+      openssl_certificate:
+        path: "{{ ssl.wd }}/artifacts/ca.crt"
+        privatekey_path: "{{ ssl.wd }}/artifacts/ca.key"
+        csr_path: "{{ ssl.wd }}/artifacts/ca.csr"
+        provider: selfsigned
+        force: yes
+
+    - name: generate signed member certificates
+      openssl_certificate:
+        path: "{{ ssl.wd }}/artifacts/{{ item }}/server.crt"
+        csr_path: "{{ ssl.wd }}/artifacts/{{ item }}/server.csr"
+        ownca_path: "{{ ssl.wd }}/artifacts/ca.crt"
+        ownca_privatekey_path: "{{ ssl.wd }}/artifacts/ca.key"
+        provider: ownca
+        force: yes
+      with_items: "{{ groups['db'] }}"
+
+- name: distribute ca certificate(s)
+  copy:
+    src: "{{ ssl.wd }}/artifacts/ca.crt"
+    dest: "/etc/etcd/ssl/ca.crt"
+    mode: 0644
+    force: yes
+
+- name: distribute member certificate(s)
+  copy:
+    src: "{{ ssl.wd }}/artifacts/{{ ansible_host }}/server.crt"
+    dest: "/etc/etcd/ssl/server.crt"
+    mode: 0644
+    force: yes
+
+- name: distribute member private key(s)
+  copy:
+    src: "{{ ssl.wd }}/artifacts/{{ ansible_host }}/server.key"
+    dest: "/etc/etcd/ssl/server.key"
+    mode: 0600
+    force: yes
+
+#- name: clean up
+#  delegate_to: localhost
+#  run_once: yes
+#  become: no
+#  file:
+#    path: "{{ db.ssl.wd }}"
+#    state: absent

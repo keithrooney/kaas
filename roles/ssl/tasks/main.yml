@@ -1,0 +1,4 @@
+---
+- name: enable ssl
+  import_tasks: db.yml
+  when: ssl.enabled

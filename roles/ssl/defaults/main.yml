@@ -1,4 +1,0 @@
----
-ssl:
-  enabled: true
-  wd: ~/.quartermaster/ssl

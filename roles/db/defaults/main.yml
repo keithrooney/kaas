@@ -1,6 +1,6 @@
 ---
 db:
-  version: "v3.5.0"
+  version: "v3.5.5"
   ssl:
-    enabled: false
-    wd: ~/.quartermaster/ssl
+    enabled: true
+    wd: ~/.quartermaster/db/ssl

@@ -11,13 +11,7 @@
     state: present
     key: "{{ lookup('file', '/home/krooney/.ssh/admin/id_ecdsa.pub') }}"
 
-- name: add private keys
-  copy:
-    src: /home/krooney/.ssh/admin/id_ecdsa
-    dest: ~/.ssh/id_ecdsa
-    mode: 0600
-
-- name: purge authorized keys
+- name: "purge authorized keys"
   remote_user: root
   file:
     state: absent

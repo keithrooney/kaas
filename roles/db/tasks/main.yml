@@ -87,5 +87,5 @@
 - name: reload daemon
   ansible.builtin.systemd:
     name: etcd
-    state: started
+    state: restarted
     daemon_reload: yes

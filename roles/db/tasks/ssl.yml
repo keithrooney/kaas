@@ -1,78 +1,73 @@
 ---
-#- name: generate certificates
-#  delegate_to: localhost
-#  run_once: True
-#  become: no
-#  block:
-#
-#    - name: create directories
-#      file:
-#        path: "{{ db.ssl.wd }}/artifacts/{{ item }}"
-#        state: directory
-#      with_items: "{{ groups['db'] }}"
-#
-#    - name: generate private key(s)
-#      openssl_privatekey:
-#        path: "{{ db.ssl.wd }}/artifacts/{{ item }}/server.key"
-#        type: RSA
-#        size: 4096
-#        force: yes
-#      with_items: "{{ groups['db'] }}"
-#
-#    - name: generate csr(s)
-#      openssl_csr:
-#        path: "{{ db.ssl.wd }}/artifacts/{{ item }}/server.csr"
-#        privatekey_path: "{{ db.ssl.wd }}/artifacts/{{ item }}/server.key"
-#        common_name: "{{ item }}"
-#        key_usage:
-#          - digitalSignature
-#        extended_key_usage:
-#          - serverAuth
-#        subject_alt_name:
-#          - IP:{{ item }}
-#          - IP:127.0.0.1
-#        force: yes
-#      with_items: "{{ groups['db'] }}"
-#
-#    - name: generate ca private key
-#      openssl_privatekey:
-#        path: "{{ db.ssl.wd }}/artifacts/ca.key"
-#        type: RSA
-#        size: 4096
-#        force: yes
-#
-#    - name: generate ca csr
-#      openssl_csr:
-#        path: "{{ db.ssl.wd }}/artifacts/ca.csr"
-#        privatekey_path: "{{ db.ssl.wd }}/artifacts/ca.key"
-#        common_name: ca
-#        organization_name: "Quartermaster"
-#        basic_constraints:
-#          - CA:TRUE
-#          - pathlen:1
-#        basic_constraints_critical: True
-#        key_usage:
-#          - keyCertSign
-#          - digitalSignature
-#        force: yes
-#
-#    - name: generate self-signed ca certificates
-#      openssl_certificate:
-#        path: "{{ db.ssl.wd }}/artifacts/ca.crt"
-#        privatekey_path: "{{ db.ssl.wd }}/artifacts/ca.key"
-#        csr_path: "{{ db.ssl.wd }}/artifacts/ca.csr"
-#        provider: selfsigned
-#        force: yes
-#
-#    - name: generate signed member certificates
-#      openssl_certificate:
-#        path: "{{ db.ssl.wd }}/artifacts/{{ item }}/server.crt"
-#        csr_path: "{{ db.ssl.wd }}/artifacts/{{ item }}/server.csr"
-#        ownca_path: "{{ db.ssl.wd }}/artifacts/ca.crt"
-#        ownca_privatekey_path: "{{ db.ssl.wd }}/artifacts/ca.key"
-#        provider: ownca
-#        force: yes
-#      with_items: "{{ groups['db'] }}"
+- name: generate certificates
+  delegate_to: localhost
+  run_once: True
+  become: no
+  block:
+
+    - name: create directories
+      file:
+        path: "{{ db.ssl.wd }}"
+        state: directory
+
+    - name: generate private key(s)
+      openssl_privatekey:
+        path: "{{ db.ssl.wd }}/server.key"
+        type: RSA
+        size: 4096
+        force: yes
+
+    - name: generate csr(s)
+      openssl_csr:
+        path: "{{ db.ssl.wd }}/server.csr"
+        privatekey_path: "{{ db.ssl.wd }}/server.key"
+        common_name: "www.quartermaster.com"
+        key_usage:
+          - digitalSignature
+        extended_key_usage:
+          - serverAuth
+        subject_alt_name:
+          - IP:127.0.0.1
+        force: yes
+
+    - name: generate ca private key
+      openssl_privatekey:
+        path: "{{ db.ssl.wd }}/ca.key"
+        type: RSA
+        size: 4096
+        force: yes
+
+    - name: generate ca csr
+      openssl_csr:
+        path: "{{ db.ssl.wd }}/ca.csr"
+        privatekey_path: "{{ db.ssl.wd }}/ca.key"
+        common_name: ca
+        organization_name: "Quartermaster"
+        basic_constraints:
+          - CA:TRUE
+          - pathlen:1
+        basic_constraints_critical: True
+        key_usage:
+          - keyCertSign
+          - digitalSignature
+        force: yes
+
+    - name: generate self-signed ca certificates
+      openssl_certificate:
+        path: "{{ db.ssl.wd }}/ca.crt"
+        privatekey_path: "{{ db.ssl.wd }}/ca.key"
+        csr_path: "{{ db.ssl.wd }}/ca.csr"
+        provider: selfsigned
+        force: yes
+
+    - name: generate signed member certificates
+      openssl_certificate:
+        path: "{{ db.ssl.wd }}/server.crt"
+        csr_path: "{{ db.ssl.wd }}/server.csr"
+        ownca_path: "{{ db.ssl.wd }}/ca.crt"
+        ownca_privatekey_path: "{{ db.ssl.wd }}/ca.key"
+        provider: ownca
+        force: yes
 
 - name: create directories
   file:
@@ -86,33 +81,34 @@
       owner: root
       group: root
 
-#- name: distribute ca certificate(s)
-#  copy:
-#    src: "{{ db.ssl.wd }}/artifacts/ca.crt"
-#    dest: "/etc/etcd/ssl/ca.crt"
-#    mode: 0644
-#    force: yes
+- name: distribute ca certificate(s)
+  copy:
+    src: "{{ db.ssl.wd }}/ca.crt"
+    dest: "/etc/etcd/ssl/ca.crt"
+    mode: 0644
+    force: yes
 
 - name: distribute member certificate(s)
   copy:
-#    src: "{{ db.ssl.wd }}/artifacts/{{ ansible_host }}/server.crt"
-    src: "{{ db.ssl.wd }}/artifacts/server.crt"
+    src: "{{ db.ssl.wd }}/server.crt"
     dest: "/etc/etcd/ssl/server.crt"
     mode: 0644
     force: yes
 
 - name: distribute member private key(s)
   copy:
-#    src: "{{ db.ssl.wd }}/artifacts/{{ ansible_host }}/server.key"
-    src: "{{ db.ssl.wd }}/artifacts/server.key"
+    src: "{{ db.ssl.wd }}/server.key"
     dest: "/etc/etcd/ssl/server.key"
-    mode: 0600
+    mode: 0644
     force: yes
 
-#- name: clean up
-#  delegate_to: localhost
-#  run_once: yes
-#  become: no
-#  file:
-#    path: "{{ db.ssl.wd }}"
-#    state: absent
+- name: clean up
+  delegate_to: localhost
+  run_once: yes
+  become: no
+  file:
+    path: "{{ db.ssl.wd }}"
+    state: absent
+  with_items:
+    - "{{ db.ssl.wd }}/server.key"
+    - "{{ db.ssl.wd }}/server.crt"

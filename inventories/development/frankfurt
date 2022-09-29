@@ -3,9 +3,6 @@
 [workers]
 
 [db]
-209.250.235.213
-45.76.87.2
-192.248.180.135
 
 [frankfurt:children]
 masters

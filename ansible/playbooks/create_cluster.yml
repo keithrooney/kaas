@@ -2,7 +2,6 @@
 - hosts: localhost
   gather_facts: no
   roles:
-    - auth
     - { role: node, node_groups: ["masters"] }
     - { role: node, node_groups: ["workers"] }
   vars:

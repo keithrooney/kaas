@@ -1,8 +1,0 @@
----
-- name: "update public keys"
-  vultr.cloud.ssh_key:
-    name: "quartermaster - root - public key"
-    ssh_key: "{{ quartermaster_ssh_public_key }}"
-    state: present
-  vars:
-    quartermaster_ssh_public_key: "{{ lookup('file', '/home/krooney/.ssh/root/id_ecdsa.pub') }}"

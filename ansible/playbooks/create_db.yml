@@ -2,9 +2,9 @@
 - hosts: localhost
   gather_facts: no
   roles:
-    - nodes
-    - nodes
-    - nodes
+    - node
+    - node
+    - node
   vars:
     node_region: frankfurt
     node_server: "2x1"

@@ -3,8 +3,8 @@
   gather_facts: no
   roles:
     - auth
-    - { role: nodes, node_groups: ["masters"] }
-    - { role: nodes, node_groups: ["workers"] }
+    - { role: node, node_groups: ["masters"] }
+    - { role: node, node_groups: ["workers"] }
   vars:
     node_region: frankfurt
     node_server: "4x2"

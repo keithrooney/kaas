@@ -1,19 +1,10 @@
 ---
-- hosts: localhost
-  gather_facts: no
-  roles:
-    - { role: node, node_groups: ["masters"] }
-    - { role: node, node_groups: ["workers"] }
-  vars:
-    node_region: frankfurt
-    node_server: "4x2"
-
 - hosts:
     - masters
     - workers
   remote_user: root
   roles:
-    - users
+    - node
   vars:
     ansible_ssh_private_key_file: /home/krooney/.ssh/root/id_ecdsa
 
@@ -23,7 +14,6 @@
   remote_user: admin
   become: yes
   roles:
-    - os
     - cr
     - co
   vars:

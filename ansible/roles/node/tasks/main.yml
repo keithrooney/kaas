@@ -1,37 +1,91 @@
 ---
-- name: validate parameters
-  assert:
-    that:
-      - "'{{ node_region }}' is defined"
-      - "'{{ node_region }}' in {{ vultr.regions }}"
-      - "'{{ node_server }}' is defined"
-      - "'{{ node_server }}' in {{ vultr.servers }}"
-      - "{{ node_groups }} is defined"
-      - "{{ node_groups | length }} >= 1"
+#- name: wait for node to be ready
+#  ansible.builtin.wait_for:
+#    port: 22
+#    host: "{{ ansible_host }}"
+#    delay: 240
+#    timeout: 800
+#    sleep: 30
+#  connection: local
 
-- name: generate name
-  ansible.builtin.shell: "cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 6 | head -n 1"
-  register: shell_output
+- name: provision user(s)
+  user:
+    name: admin
+    group: sudo
+    shell: /bin/bash
 
-- name: provision node
-  ngine_io.vultr.vultr_server:
-    name: "{{ shell_output.stdout }}.quartermaster.io"
-    os: "Ubuntu 20.04 LTS x64"
-    plan: "{{ vultr['servers'][node_server]['name'] }}"
-    region: "{{ vultr['regions'][node_region]['name'] }}"
-    ssh_key: "quartermaster - root - public key"
-  register: server
+- name: re-configure authorized keys
+  authorized_key:
+    user: admin
+    state: present
+    key: "{{ lookup('file', '/home/krooney/.ssh/admin/id_ecdsa.pub') }}"
 
-- name: wait for node to be ready
-  ansible.builtin.wait_for:
-    port: 22
-    host: '{{ server.vultr_server.v4_main_ip }}'
-    delay: 240
-    timeout: 800
-    sleep: 30
-  connection: local
+- name: purge authorized keys
+  file:
+    state: absent
+    path: '/home/{{ item.name }}/.ssh/authorized_keys'
+  with_items:
+    - name: root
 
-- name: "add node {{ server.vultr_server.v4_main_ip }} to group {{ node_groups }}"
-  ansible.builtin.add_host:
-    hostname: "{{ server.vultr_server.v4_main_ip }}"
-    groups: "{{ node_groups }}"
+- name: update sudoer(s)
+  lineinfile:
+    path: '/etc/sudoers'
+    regexp: '^%sudo.*ALL=\(ALL:ALL\).*'
+    line: '%sudo   ALL=(ALL:ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: override sshd config
+  lineinfile:
+    path: '/etc/ssh/sshd_config'
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+  with_items:
+    - regexp: '^.*PasswordAuthentication .*'
+      line: 'PasswordAuthentication no'
+    - regexp: '^.*PermitRootLogin .*'
+      line: 'PermitRootLogin no'
+
+- name: install aptitude
+  apt:
+    pkg: aptitude
+    state: present
+
+- name: update packages
+  apt:
+    update_cache: no
+
+- name: upgrade packages
+  apt:
+    upgrade: safe
+
+- name: autoremove packages
+  apt:
+    autoremove: yes
+
+- name: install packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - cron
+      - ufw
+
+- name: configure firewall default policy
+  ufw:
+    state: enabled
+    policy: reject
+
+- name: configure firewall default port(s)
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.protocol }}"
+  with_items:
+    - rule: allow
+      port: 22
+      protocol: tcp
+
+- name: restart ssh.
+  service:
+    name: ssh
+    state: restarted

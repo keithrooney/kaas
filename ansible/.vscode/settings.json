@@ -1,0 +1,5 @@
+{
+    "ansible.ansible.path": "~/.virtualenvs/quartermaster/bin/ansible",
+    "ansible.python.interpreterPath": "~/.virtualenvs/quartermaster/bin/python",
+    "python.defaultInterpreterPath": "~/.virtualenvs/quartermaster/bin/python"
+}

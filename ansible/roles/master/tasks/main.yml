@@ -6,12 +6,12 @@
     creates: kubeadm.log
 
 - name: create configuration directory
-  become_user: admin
-  become: yes
   file:
-    path: $HOME/.kube
+    path: /home/admin/.kube
     state: directory
     mode: "0755"
+    owner: admin
+    group: sudo
 
 - name: copy cluster configuration
   copy:
@@ -21,20 +21,18 @@
     owner: admin
     group: sudo
 
-- name: wait until cluster is ready
-  command: kubectl cluster-info
-  register: cluster_info
-  until: ("Kubernetes control plane" in cluster_info.stdout) and ("is running" in cluster_info.stdout)
-  become_user: admin
-  become: no
-  retries: 30
-  delay: 20
-  args:
-    chdir: $HOME
+- name: apply network
+  block:
 
-- name: install network
-  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    - name: wait for cluster
+      command: kubectl cluster-info
+      register: cluster_info
+      until: ("Kubernetes control plane" in cluster_info.stdout) and ("is running" in cluster_info.stdout)
+      retries: 30
+      delay: 20
+
+    - name: install network
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
   become_user: admin
   become: yes
-  args:
-    chdir: $HOME

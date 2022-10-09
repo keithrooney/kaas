@@ -1,0 +1,69 @@
+# -*- mode: ruby -*-
+
+DEFAULT_BOX_IMAGE = "ubuntu/focal64"
+DEFAULT_BOX_MEMORY = 4096
+DEFAULT_BOX_CPUS = 2
+
+DEFAULT_ANSIBLE_COMPATIBILITY_MODE = "2.0"
+
+
+class MachineConfiguration
+
+  attr_reader :id, :role, :ip
+
+  def initialize(id, role, ip)
+    @id = id
+    @role = role
+    @ip = ip
+  end
+
+end
+
+DEFAULT_MACHINE_CONFIGURATIONS = [
+  MachineConfiguration.new("vb-m-0", "master", "192.168.56.10"),
+  MachineConfiguration.new("vb-w-0", "worker", "192.168.56.11"),
+  MachineConfiguration.new("vb-w-1", "worker", "192.168.56.12")
+]
+
+DEFAULT_GROUPS = {
+  "masters" => [
+    "vb-m-0"
+  ]
+}
+
+Vagrant.configure("2") do |config|
+
+  config.vm.synced_folder "/home/krooney/.ssh/admin", "/home/krooney/.ssh/admin"
+  config.vm.synced_folder "/home/krooney/.ssh/root", "/home/krooney/.ssh/root"
+
+  config.vm.provider "virtualbox" do |virtualbox_definition|
+    virtualbox_definition.memory = DEFAULT_BOX_MEMORY
+    virtualbox_definition.cpus = DEFAULT_BOX_CPUS
+  end
+
+  DEFAULT_MACHINE_CONFIGURATIONS.each do |machine_configuration|
+
+    config.vm.define "#{machine_configuration.id}" do |machine_definition|
+
+      machine_definition.vm.box = DEFAULT_BOX_IMAGE
+      machine_definition.vm.hostname = "#{machine_configuration.ip}"
+      machine_definition.vm.network "private_network", ip: "#{machine_configuration.ip}"
+  
+      ["node", "cr", "co", "#{machine_configuration.role}"].each do |role|
+        machine_definition.vm.provision "ansible" do |ansible|
+          ansible.playbook = "roles/#{role}/tests/test.yml"
+          ansible.compatibility_mode = DEFAULT_ANSIBLE_COMPATIBILITY_MODE
+          ansible.groups = DEFAULT_GROUPS
+          ansible.extra_vars = {
+            "ansible_default_ipv4" => {
+              "address" => "#{machine_configuration.ip}"
+            }
+          }
+        end
+      end
+
+    end
+
+  end
+
+end

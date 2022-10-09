@@ -36,4 +36,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# End of https://www.toptal.com/developers/gitignore/api/pycharm,terraform,ansible
+.vagrant
+
+*.log

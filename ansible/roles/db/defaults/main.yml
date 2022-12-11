@@ -4,3 +4,5 @@ db:
   ssl:
     enabled: true
     wd: ~/.quartermaster/db/ssl
+  deployment: 
+    type: "vm"

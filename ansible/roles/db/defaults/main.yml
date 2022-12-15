@@ -1,8 +1,10 @@
 ---
 db:
   version: "v3.5.5"
-  ssl:
+  wd:
+    local: ~/.quartermaster/db/tls
+    remote: /root/.quartermaster/db/tls
+  tls:
     enabled: true
-    wd: ~/.quartermaster/db/ssl
-  deployment: 
-    type: "vm"
+    wd: ~/.quartermaster/db/tls
+  deployment: kubernetes

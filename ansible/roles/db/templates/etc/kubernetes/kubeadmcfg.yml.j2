@@ -1,0 +1,24 @@
+---
+apiVersion: "kubeadm.k8s.io/v1beta3"
+kind: InitConfiguration
+nodeRegistration:
+    name: "etcd-{{ ansible_host }}"
+localAPIEndpoint:
+    advertiseAddress: {{ ansible_host }}
+---
+apiVersion: "kubeadm.k8s.io/v1beta3"
+kind: ClusterConfiguration
+etcd:
+    local:
+        serverCertSANs:
+        - "{{ ansible_host }}"
+        peerCertSANs:
+        - "{{ ansible_host }}"
+        extraArgs:
+            initial-cluster: "{% for host in groups['db']  %}etcd-{{ host }}=http{% if db.tls.enabled %}s{% endif %}://{{ host }}:2380{% if not loop.last %},{% endif %}{% endfor %}"
+            initial-cluster-state: new
+            name: "etcd-{{ ansible_host }}"
+            listen-peer-urls: "http{% if db.tls.enabled %}s{% endif %}://{{ ansible_host }}:2380"
+            listen-client-urls: "http{% if db.tls.enabled %}s{% endif %}://{{ ansible_host }}:2379,http{% if db.tls.enabled %}s{% endif %}://127.0.0.1:2379"
+            advertise-client-urls: "http{% if db.tls.enabled %}s{% endif %}://{{ ansible_host }}:2379"
+            initial-advertise-peer-urls: "http{% if db.tls.enabled %}s{% endif %}://{{ ansible_host }}:2380"

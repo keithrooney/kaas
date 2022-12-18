@@ -1,0 +1,46 @@
+---
+- name: (cri-dockerd) download release
+  get_url:
+    url: "https://github.com/Mirantis/cri-dockerd/releases/download/v{{ cri_dockerd.version }}/cri-dockerd-{{ cri_dockerd.version }}.amd64.tgz"
+    dest: /tmp/cri-dockerd.amd64.tgz
+  
+- name: (cri-dockerd) uncompress release
+  unarchive:
+    src: /tmp/cri-dockerd.amd64.tgz
+    dest: /tmp/
+    remote_src: yes
+
+- name: (cri-dockerd) copy binary
+  copy:
+    src: /tmp/cri-dockerd/cri-dockerd
+    dest: /usr/local/bin/cri-dockerd
+    mode: 0755
+    remote_src: yes
+
+- name: (cri-dockerd) add unit file(s)
+  copy:
+    src: files/etc/systemd/system/{{ item }}
+    dest: /etc/systemd/system/{{ item }}
+  with_items:
+    - cri-docker.service
+    - cri-docker.socket
+
+- name: (cri-dockerd) reload daemon
+  systemd:
+    daemon_reload: yes
+
+- name: (cri-dockerd) enable services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+  with_items:
+    - cri-docker.service
+    - cri-docker.socket
+
+- name: (cri-dockerd) purge files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /tmp/cri-dockerd.amd64.tgz
+    - /tmp/cri-dockerd/cri-dockerd

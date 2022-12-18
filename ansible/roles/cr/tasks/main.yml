@@ -1,11 +1,11 @@
 ---
-- name: install runc
-  import_tasks: runc.yml
-
-- name: install cni
-  import_tasks: cni.yml
-
 - block:
+
+  - name: install runc
+    import_tasks: runc.yml
+
+  - name: install cni
+    import_tasks: cni.yml
 
   - name: install crictl
     import_tasks: crictl.yml
@@ -13,7 +13,7 @@
   - name: install containerd
     import_tasks: containerd.yml
 
-  when: "{{ cr.runtime }} == 'containerd'"
+  when: cr.runtime == "containerd"
 
 - block:
 
@@ -23,4 +23,4 @@
   - name: install cri-dockerd
     import_tasks: cri_dockerd.yml
 
-  when: "{{ cr.runtime }} == 'docker'"
+  when: cr.runtime == "docker"

@@ -1,7 +1,7 @@
 ---
 - name: (cri-dockerd) download release
   get_url:
-    url: "https://github.com/Mirantis/cri-dockerd/releases/download/v{{ cri_dockerd.version }}/cri-dockerd-{{ cri_dockerd.version }}.amd64.tgz"
+    url: "https://github.com/Mirantis/cri-dockerd/releases/download/v{{ cr.cri_dockerd.version }}/cri-dockerd-{{ cr.cri_dockerd.version }}.amd64.tgz"
     dest: /tmp/cri-dockerd.amd64.tgz
   
 - name: (cri-dockerd) uncompress release

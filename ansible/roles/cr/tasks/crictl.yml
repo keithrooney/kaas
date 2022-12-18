@@ -1,11 +1,11 @@
 ---
 - name: (crictl) download files
   get_url:
-    url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ crictl.version }}/crictl-v{{ crictl.version }}-linux-amd64.tar.gz"
+    url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v{{ cr.crictl.version }}/crictl-v{{ cr.crictl.version }}-linux-amd64.tar.gz"
     dest: /opt
 
 - name: (crictl) unzip packages
   unarchive:
-    src: "/opt/crictl-v{{ crictl.version }}-linux-amd64.tar.gz"
+    src: "/opt/crictl-v{{ cr.crictl.version }}-linux-amd64.tar.gz"
     dest: /usr/local/bin
     remote_src: yes

@@ -1,4 +1,8 @@
 ---
+- name: update hostname
+  hostname:
+    name: "{{ ansible_host }}"
+
 - name: provision user(s)
   user:
     name: admin

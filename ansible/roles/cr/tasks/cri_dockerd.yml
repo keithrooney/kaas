@@ -32,7 +32,9 @@
 - name: (cri-dockerd) enable services
   systemd:
     name: "{{ item }}"
-    enabled: yes
+    daemon_reload: true
+    state: started
+    enabled: true
   with_items:
     - cri-docker.service
     - cri-docker.socket

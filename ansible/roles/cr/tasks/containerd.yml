@@ -12,14 +12,14 @@
     url: "{{ item.url }}"
     dest: "{{ item.dest }}"
   with_items:
-    - url: "https://github.com/containerd/containerd/releases/download/v{{ containerd.version }}/containerd-{{ containerd.version }}-linux-amd64.tar.gz"
+    - url: "https://github.com/containerd/containerd/releases/download/v{{ cr.containerd.version }}/containerd-{{ cr.containerd.version }}-linux-amd64.tar.gz"
       dest: /opt
     - url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
       dest: /usr/local/lib/systemd/system/containerd.service
 
 - name: (containerd) unzip packages
   unarchive:
-    src: "/opt/containerd-{{ containerd.version }}-linux-amd64.tar.gz"
+    src: "/opt/containerd-{{ cr.containerd.version }}-linux-amd64.tar.gz"
     dest: /usr/local
     remote_src: yes
 

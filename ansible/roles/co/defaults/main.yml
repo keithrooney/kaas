@@ -1,3 +1,4 @@
 ---
-kubernetes:
-  version: "1.26.0"
+co:
+  kubernetes:
+    version: "1.26.0"

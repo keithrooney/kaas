@@ -1,13 +1,13 @@
 ---
-containerd:
-  version: "1.6.12"
-crictl:
-  version: "1.25.0"
-cni:
-  version: "1.1.1"
-runc:
-  version: "1.1.4"
-cri_dockerd:
-  version: "0.2.6"
 cr:
+  containerd:
+    version: "1.6.12"
+  crictl:
+    version: "1.25.0"
+  cni:
+    version: "1.1.1"
+  runc:
+    version: "1.1.4"
+  cri_dockerd:
+    version: "0.2.6"
   runtime: "docker"

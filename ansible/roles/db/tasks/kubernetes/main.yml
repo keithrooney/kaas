@@ -1,7 +1,7 @@
 ---
 - name: replace unit file(s)
-  copy:
-    src: files/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  template:
+    src: etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 - name: reload kubelet

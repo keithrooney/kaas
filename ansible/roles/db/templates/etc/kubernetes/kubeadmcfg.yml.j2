@@ -3,7 +3,7 @@ apiVersion: "kubeadm.k8s.io/v1beta3"
 kind: InitConfiguration
 nodeRegistration:
     name: "etcd-{{ ansible_host }}"
-    criSocket: unix:///var/run/cri-dockerd.sock
+    criSocket: unix:///var/run/{% if cr_deployment_type == "containerd" %}containerd/containerd.sock{% else %}cri-dockerd.sock{% endif %}
 localAPIEndpoint:
     advertiseAddress: "{{ ansible_host }}"
 ---

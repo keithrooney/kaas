@@ -1,2 +1,2 @@
 ---
-- include_tasks: "{{ db.deployment }}/main.yml"
+- include_tasks: "{{ db.deployment.type }}/main.yml"

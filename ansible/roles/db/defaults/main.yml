@@ -7,4 +7,5 @@ db:
   tls:
     enabled: true
     wd: ~/.quartermaster/db/tls
-  deployment: kubernetes
+  deployment:
+    type: kubernetes

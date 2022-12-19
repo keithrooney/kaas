@@ -1,21 +1,7 @@
 ---
-- name: (cri-dockerd) download release
-  get_url:
-    url: "https://github.com/Mirantis/cri-dockerd/releases/download/v{{ cr.cri_dockerd.version }}/cri-dockerd-{{ cr.cri_dockerd.version }}.amd64.tgz"
-    dest: /tmp/cri-dockerd.amd64.tgz
-  
-- name: (cri-dockerd) uncompress release
-  unarchive:
-    src: /tmp/cri-dockerd.amd64.tgz
-    dest: /tmp/
-    remote_src: yes
-
-- name: (cri-dockerd) copy binary
-  copy:
-    src: /tmp/cri-dockerd/cri-dockerd
-    dest: /usr/local/bin/cri-dockerd
-    mode: 0755
-    remote_src: yes
+- name: (cri-dockerd) install package
+  apt:
+    deb: "https://github.com/Mirantis/cri-dockerd/releases/download/v{{ cr.cri_dockerd.version }}/cri-dockerd_{{ cr.cri_dockerd.version }}.3-0.ubuntu-{{ ansible_distribution_release }}_amd64.deb"
 
 - name: (cri-dockerd) add unit file(s)
   copy:

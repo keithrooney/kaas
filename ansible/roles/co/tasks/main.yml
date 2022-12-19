@@ -82,24 +82,16 @@
     - kubelet
     - kubectl
 
-- name: download configurations
-  get_url:
-    url: "{{ item.url }}"
+- name: add unit files
+  copy:
+    src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    force: yes
   with_items:
-    - url: "https://raw.githubusercontent.com/kubernetes/release/v0.4.0/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service"
+    - src: "files/etc/systemd/system/kubelet.service"
       dest: /etc/systemd/system/kubelet.service
-    - url: "https://raw.githubusercontent.com/kubernetes/release/v0.4.0/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf"
+    - src: "files/etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
       dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-
-- name: modify configurations
-  replace:
-    path: "{{ item }}"
-    regexp: "/usr/bin"
-    replace: "/usr/local/bin"
-  with_items:
-    - /etc/systemd/system/kubelet.service
-    - /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 - name: enable kubelet
   systemd:

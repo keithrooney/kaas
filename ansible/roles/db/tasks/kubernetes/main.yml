@@ -1,0 +1,76 @@
+---
+- name: replace unit file(s)
+  template:
+    src: etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+- name: reload kubelet
+  systemd:
+    name: kubelet
+    state: restarted
+    daemon_reload: yes
+
+- delegate_to: "{{ tls_server }}"
+  run_once: yes
+  block:
+
+    - name: create required directories
+      file:
+        path: "{{ db.wd.remote }}/{{ item }}"
+        owner: root
+        group: root
+        mode: 0600
+        state: directory
+      with_items: "{{ groups['db'] }}"
+
+    - name: add cluster configuration
+      template:
+        src: etc/kubernetes/kubeadmcfg.yml.j2
+        dest: "{{ db.wd.remote }}/{{ item }}/kubeadmcfg.yml"
+      with_items: "{{ groups['db'] }}"
+
+    - name: generate certificate authority
+      command: "kubeadm init phase certs etcd-ca --config={{ db.wd.remote }}/{{ ansible_host }}/kubeadmcfg.yml"
+    
+    - name: "generate certificates"
+      include_tasks: tls.yml
+      vars:
+        remote_directory: "{{ db.wd.remote }}/{{ host }}"
+        local_directory: "{{ db.wd.local }}/{{ host }}"
+      with_items: "{{ groups['db'] }}"
+      loop_control:
+        loop_var: host
+    
+    - name: remove generated directories
+      file:
+        path: /etc/kubernetes
+        state: absent
+
+  vars:
+    tls_server: "{{ groups['db'][0] }}"
+
+- name: "distribute certificates archive"
+  copy:
+    src: "{{ db.wd.local }}/{{ ansible_host }}.tar"
+    dest: "/tmp/{{ ansible_host }}.tar"
+
+- name: "uncompress certificates archive"
+  unarchive:
+    src: "/tmp/{{ ansible_host }}.tar"
+    dest: "/tmp/"
+    remote_src: yes
+
+- name: "create required directories"
+  file:
+    path: /etc/kubernetes
+    state: directory
+    mode: 0755
+
+- name: "move certificates"
+  copy:
+    src: "/tmp/{{ ansible_host }}/"
+    dest: "/etc/kubernetes/"
+    remote_src: yes
+
+- name: "create manifests"
+  command: "kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yml"

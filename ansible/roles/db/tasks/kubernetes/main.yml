@@ -30,7 +30,7 @@
       with_items: "{{ groups['db'] }}"
 
     - name: generate certificate authority
-      command: "kubeadm init phase certs etcd-ca"
+      command: "kubeadm init phase certs etcd-ca --config={{ db.wd.remote }}/{{ ansible_host }}/kubeadmcfg.yml"
     
     - name: "generate certificates"
       include_tasks: tls.yml
@@ -41,6 +41,11 @@
       loop_control:
         loop_var: host
     
+    - name: remove generated directories
+      file:
+        path: /etc/kubernetes
+        state: absent
+
   vars:
     tls_server: "{{ groups['db'][0] }}"
 

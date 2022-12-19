@@ -17,7 +17,7 @@
     dest: "{{ remote_directory }}"
     remote_src: yes
 
-- name: "cleanup non-reusable certificates"
+- name: "remove non-reusable certificates"
   command: "find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete"
 
 - name: compress certificates directory

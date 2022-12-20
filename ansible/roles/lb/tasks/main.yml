@@ -1,0 +1,15 @@
+---
+- name: install packages
+  apt:
+    name: haproxy
+
+- name: add configuration
+  template:
+    src: etc/haproxy/haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+    force: yes
+
+- name: restart service
+  systemd:
+    name: haproxy
+    state: restarted

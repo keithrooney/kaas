@@ -4,6 +4,8 @@
 
 [db]
 
+[lb]
+
 [frankfurt:children]
 masters
 workers

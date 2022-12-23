@@ -1,0 +1,22 @@
+[masters]
+%{ for ip in masters ~}
+${ip}
+%{ endfor ~}
+
+[workers]
+%{ for ip in workers ~}
+${ip}
+%{ endfor ~}
+
+[db]
+%{ for ip in databases ~}
+${ip}
+%{ endfor ~}
+
+[lb]
+%{ for ip in lbs ~}
+${ip}
+%{ endfor ~}
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3

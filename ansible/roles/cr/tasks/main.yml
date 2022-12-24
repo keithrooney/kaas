@@ -1,26 +1,12 @@
 ---
-- block:
+- name: install runc
+  import_tasks: runc.yml
 
-  - name: install runc
-    import_tasks: runc.yml
+- name: install cni
+  import_tasks: cni.yml
 
-  - name: install cni
-    import_tasks: cni.yml
+- name: install containerd
+  import_tasks: containerd.yml
 
-  - name: install containerd
-    import_tasks: containerd.yml
-
-  - name: install crictl
-    import_tasks: crictl.yml
-
-  when: cr_deployment_type is defined and cr_deployment_type == "containerd"
-
-- block:
-
-  - name: install docker
-    import_tasks: docker.yml
-
-  - name: install cri-dockerd
-    import_tasks: cri_dockerd.yml
-
-  when: cr_deployment_type is undefined
+- name: install crictl
+  import_tasks: crictl.yml

@@ -1,4 +1,15 @@
 ---
+- name: open required port(s)
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: tcp
+  with_items:
+    - rule: allow
+      port: 6443
+    - rule: allow
+      port: 9000
+
 - name: install packages
   apt:
     name: haproxy

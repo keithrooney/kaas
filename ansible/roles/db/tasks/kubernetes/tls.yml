@@ -1,15 +1,15 @@
 ---
-- name: generate peer certs
-  command: "kubeadm init phase certs etcd-peer --config={{ remote_directory }}/kubeadmcfg.yml"
+- name: generate server certs
+  command: "kubeadm init phase certs etcd-server --config={{ remote_directory }}/kubeadm-config.yml"
 
 - name: generate peer certs
-  command: "kubeadm init phase certs etcd-peer --config={{ remote_directory }}/kubeadmcfg.yml"
+  command: "kubeadm init phase certs etcd-peer --config={{ remote_directory }}/kubeadm-config.yml"
 
 - name: generate healthcheck certs
-  command: "kubeadm init phase certs etcd-healthcheck-client --config={{ remote_directory }}/kubeadmcfg.yml"
+  command: "kubeadm init phase certs etcd-healthcheck-client --config={{ remote_directory }}/kubeadm-config.yml"
 
 - name: generate apiserver client certs
-  command: "kubeadm init phase certs apiserver-etcd-client --config={{ remote_directory }}/kubeadmcfg.yml"
+  command: "kubeadm init phase certs apiserver-etcd-client --config={{ remote_directory }}/kubeadm-config.yml"
 
 - name: save certificates directory
   copy:

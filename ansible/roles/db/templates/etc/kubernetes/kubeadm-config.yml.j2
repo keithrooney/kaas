@@ -1,0 +1,27 @@
+#jinja2: trim_blocks:False
+---
+apiVersion: "kubeadm.k8s.io/v1beta3"
+kind: InitConfiguration
+nodeRegistration:
+    name: "etcd-{{ host }}"
+    criSocket: unix:///var/run/containerd/containerd.sock
+localAPIEndpoint:
+    advertiseAddress: "{{ host }}"
+---
+apiVersion: "kubeadm.k8s.io/v1beta3"
+kind: ClusterConfiguration
+etcd:
+    local:
+        serverCertSANs:
+        - "{{ host }}"
+        peerCertSANs:
+        - "{{ host }}"
+        extraArgs:
+            initial-cluster: "{% for host in groups['db']  %}etcd-{{ host }}=https://{{ host }}:2380{% if not loop.last %},{% endif %}{% endfor %}"
+            initial-cluster-state: new
+            name: "etcd-{{ host }}"
+            listen-peer-urls: "https://127.0.0.1:2380,https://{{ host }}:2380"
+            listen-client-urls: "https://127.0.0.1:2379,https://{{ host }}:2379"
+            advertise-client-urls: "https://{{ host }}:2379"
+            initial-advertise-peer-urls: "https://{{ host }}:2380"
+            

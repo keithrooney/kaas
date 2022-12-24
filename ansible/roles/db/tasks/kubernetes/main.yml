@@ -10,6 +10,19 @@
     state: restarted
     daemon_reload: yes
 
+- name: open required port(s)
+  ufw:
+    rule: "{{ item.rule }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.protocol }}"
+  with_items:
+    - rule: allow
+      port: 2379
+      protocol: tcp
+    - rule: allow
+      port: 2380
+      protocol: tcp
+
 - delegate_to: "{{ tls_server }}"
   run_once: yes
   block:
@@ -25,12 +38,15 @@
 
     - name: add cluster configuration
       template:
-        src: etc/kubernetes/kubeadmcfg.yml.j2
-        dest: "{{ db.wd.remote }}/{{ item }}/kubeadmcfg.yml"
+        src: etc/kubernetes/kubeadm-config.yml.j2
+        dest: "{{ db.wd.remote }}/{{ item }}/kubeadm-config.yml"
+        force: yes
+      vars:
+        host: "{{ item }}"
       with_items: "{{ groups['db'] }}"
 
     - name: generate certificate authority
-      command: "kubeadm init phase certs etcd-ca --config={{ db.wd.remote }}/{{ ansible_host }}/kubeadmcfg.yml"
+      command: "kubeadm init phase certs etcd-ca --config={{ db.wd.remote }}/{{ ansible_host }}/kubeadm-config.yml"
     
     - name: "generate certificates"
       include_tasks: tls.yml
@@ -73,4 +89,4 @@
     remote_src: yes
 
 - name: "create manifests"
-  command: "kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yml"
+  command: "kubeadm init phase etcd local --config=/etc/kubernetes/kubeadm-config.yml"

@@ -2,6 +2,8 @@
 - hosts:
     - masters
     - workers
+    - db
+    - lb
   remote_user: root
   roles:
     - node
@@ -11,11 +13,28 @@
 - hosts:
     - masters
     - workers
+    - db
   remote_user: admin
   become: yes
   roles:
     - cr
     - co
+  vars:
+    ansible_ssh_private_key_file: "{{ node_admin_private_key_file | default('~/.ssh/admin/id_ecdsa') }}"
+
+- hosts: db
+  remote_user: admin
+  become: yes
+  roles:
+    - db
+  vars:
+    ansible_ssh_private_key_file: "{{ node_admin_private_key_file | default('~/.ssh/admin/id_ecdsa') }}"
+
+- hosts: lb
+  remote_user: admin
+  become: yes
+  roles:
+    - lb
   vars:
     ansible_ssh_private_key_file: "{{ node_admin_private_key_file | default('~/.ssh/admin/id_ecdsa') }}"
 

@@ -1,0 +1,25 @@
+#jinja2: trim_blocks:False
+---
+apiVersion: "kubeadm.k8s.io/v1beta3"
+kind: InitConfiguration
+nodeRegistration:
+  name: "{{ ansible_host }}"
+  criSocket: unix:///var/run/containerd/containerd.sock
+localAPIEndpoint:
+  advertiseAddress: "{{ ansible_host }}"
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: stable
+controlPlaneEndpoint: "{{ groups['lb'][0] }}:6443"
+etcd:
+  external:
+    endpoints:
+      {% for host in groups["db"] %}
+      - https://{{ host }}:2379
+      {% endfor %}
+    caFile: /etc/kubernetes/pki/etcd/ca.crt
+    certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+    keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
+networking:
+  podSubnet: 10.244.0.0/16

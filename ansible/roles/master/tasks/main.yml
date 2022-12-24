@@ -1,6 +1,43 @@
 ---
+- name: create required local directories
+  delegate_to: localhost
+  become: no
+  file:
+    path: "{{ master.wd.local }}/tls/etcd"
+    state: directory
+
+- name: download database certificates
+  delegate_to: "{{ groups['db'][0] }}"
+  fetch:
+    src: /etc/kubernetes/pki/{{ item }}
+    dest: "{{ master.wd.local }}/tls/{{ item }}"
+    flat: yes
+  with_items:
+    - etcd/ca.crt
+    - apiserver-etcd-client.crt
+    - apiserver-etcd-client.key
+
+- name: create required remote directories
+  file:
+    path: "/etc/kubernetes/pki/etcd"
+    state: directory
+
+- name: add database certificates
+  copy:
+    src: "{{ master.wd.local }}/tls/{{ item }}"
+    dest: "/etc/kubernetes/pki/{{ item }}"
+  with_items:
+    - etcd/ca.crt
+    - apiserver-etcd-client.crt
+    - apiserver-etcd-client.key
+
+- name: add configuration
+  template:
+    src: etc/kubernetes/kubeadm-config.yml.j2
+    dest: /etc/kubernetes/kubeadm-config.yml
+
 - name: initialize cluster
-  shell: "kubeadm init --cri-socket=/run/{% if cr_deployment_type == 'containerd' %}containerd/containerd.sock{% else %}cri-dockerd.sock{% endif %} --apiserver-advertise-address={{ ansible_default_ipv4.address }} --node-name={{ ansible_default_ipv4.address }} --pod-network-cidr=10.244.0.0/16 > kubeadm.log"
+  shell: "kubeadm init --config=/etc/kubernetes/kubeadm-config.yml --upload-certs > kubeadm.log"
   args:
     chdir: $HOME
     creates: kubeadm.log

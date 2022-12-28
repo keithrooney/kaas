@@ -8,6 +8,7 @@ resource "vultr_instance" "master" {
 }
 
 resource "vultr_instance" "worker" {
+  count = 3
   plan = "vc2-2c-4gb"
   region = "fra"
   os_id = "387"

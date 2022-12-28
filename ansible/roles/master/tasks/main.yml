@@ -36,40 +36,39 @@
     src: etc/kubernetes/kubeadm-config.yml.j2
     dest: /etc/kubernetes/kubeadm-config.yml
 
-- name: initialize cluster
-  shell: "kubeadm init --config=/etc/kubernetes/kubeadm-config.yml --upload-certs > kubeadm.log"
-  args:
-    chdir: $HOME
-    creates: kubeadm.log
-
-- name: create configuration directory
-  file:
-    path: /home/admin/.kube
-    state: directory
-    mode: "0755"
-    owner: admin
-    group: sudo
-
-- name: copy cluster configuration
-  copy:
-    src: /etc/kubernetes/admin.conf
-    dest: /home/admin/.kube/config
-    remote_src: yes
-    owner: admin
-    group: sudo
-
-- name: apply network
+- name: "configure first control plane"
+  run_once: yes
   block:
 
-    - name: wait for cluster
-      command: kubectl cluster-info
-      register: cluster_info
-      until: ("Kubernetes control plane" in cluster_info.stdout) and ("is running" in cluster_info.stdout)
-      retries: 30
-      delay: 20
+  - name: initiliase the control plane
+    shell: "kubeadm init --config=/etc/kubernetes/kubeadm-config.yml --upload-certs > kubeadm.log"
+    args:
+      chdir: $HOME
+      creates: kubeadm.log
 
-    - name: install network
-      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  - name: setup configuration
+    import_tasks: kube.yml
 
-  become_user: admin
-  become: yes
+  - name: apply network
+    import_tasks: network.yml
+
+  - name: read kubeadm log
+    slurp:
+      src: ~/kubeadm.log
+    register: log
+
+- name: configure the replicas
+  when: ansible_host != groups['masters'][0]
+  block:
+
+  - name: "join the control plane(s)"
+    shell: "{{ master_command }}"
+    vars:
+      master_command: "{{ content | regex_search('.*kubeadm\\s+join.*\\\n\t.*\\\n\t.*', ignorecase=True) | trim | regex_replace('[\\n\\t]', '') }}"
+      content: "{{ log['content'] | b64decode }}"
+
+  - name: setup kube configuration
+    import_tasks: kube.yml
+
+  - name: apply network
+    import_tasks: network.yml

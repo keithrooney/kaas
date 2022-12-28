@@ -1,4 +1,5 @@
 resource "vultr_instance" "master" {
+  count = 2
   plan = "vc2-2c-4gb"
   region = "fra"
   os_id = "387"

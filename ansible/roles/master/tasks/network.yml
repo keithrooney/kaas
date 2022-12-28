@@ -1,0 +1,16 @@
+---
+- name: apply network
+  block:
+
+    - name: wait for cluster
+      command: kubectl cluster-info
+      register: cluster_info
+      until: ("Kubernetes control plane" in cluster_info.stdout) and ("is running" in cluster_info.stdout)
+      retries: 30
+      delay: 20
+
+    - name: install network
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+  become_user: admin
+  become: yes

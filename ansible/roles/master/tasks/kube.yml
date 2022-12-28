@@ -1,0 +1,16 @@
+---
+- name: create configuration directory
+  file:
+    path: /home/admin/.kube
+    state: directory
+    mode: "0755"
+    owner: admin
+    group: sudo
+
+- name: copy cluster configuration
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/admin/.kube/config
+    remote_src: yes
+    owner: admin
+    group: sudo

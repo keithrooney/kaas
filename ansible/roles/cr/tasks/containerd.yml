@@ -1,5 +1,5 @@
 ---
-- name: (containerd) create directories
+- name: (containerd) create required directories
   file:
     path: "{{ item }}"
     state: directory

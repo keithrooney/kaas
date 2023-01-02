@@ -36,7 +36,7 @@
     src: etc/kubernetes/kubeadm-config.yml.j2
     dest: /etc/kubernetes/kubeadm-config.yml
 
-- name: "configure first control plane"
+- name: configure first control plane
   run_once: yes
   block:
 

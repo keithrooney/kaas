@@ -82,7 +82,7 @@
     - kubelet
     - kubectl
 
-- name: add unit files
+- name: add unit file(s)
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -99,7 +99,7 @@
     state: started
     enabled: yes
 
-- name: configure port(s)
+- name: open required port(s)
   ufw:
     rule: "{{ item.rule }}"
     port: "{{ item.port }}"

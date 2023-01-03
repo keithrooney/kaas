@@ -99,15 +99,5 @@
     state: started
     enabled: yes
 
-- name: open required port(s)
-  ufw:
-    rule: "{{ item.rule }}"
-    port: "{{ item.port }}"
-    proto: "{{ item.protocol }}"
-  with_items:
-    - rule: allow
-      port: 6443
-      protocol: tcp
-
 - name: reboot machine
   reboot:

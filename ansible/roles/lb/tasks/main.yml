@@ -1,14 +1,11 @@
 ---
 - name: open required port(s)
   ufw:
-    rule: "{{ item.rule }}"
-    port: "{{ item.port }}"
+    rule: allow
+    port: "{{ item }}"
     proto: tcp
   with_items:
-    - rule: allow
-      port: 6443
-    - rule: allow
-      port: 9000
+    - 6443
 
 - name: install packages
   apt:

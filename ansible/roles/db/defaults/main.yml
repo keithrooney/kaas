@@ -1,6 +1,4 @@
 ---
 db:
   version: "v3.5.5"
-  wd:
-    local: ~/.quartermaster/db
-    remote: /root/.quartermaster/db
+  wd: ~/.quartermaster/db

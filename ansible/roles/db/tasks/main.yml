@@ -12,81 +12,84 @@
 
 - name: open required port(s)
   ufw:
-    rule: "{{ item.rule }}"
-    port: "{{ item.port }}"
-    proto: "{{ item.protocol }}"
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
   with_items:
-    - rule: allow
-      port: 2379
-      protocol: tcp
-    - rule: allow
-      port: 2380
-      protocol: tcp
+    - 2379
+    - 2380
 
-- delegate_to: "{{ tls_server }}"
-  run_once: yes
-  block:
-
-    - name: create required directories
-      file:
-        path: "{{ db.wd.remote }}/{{ item }}"
-        owner: root
-        group: root
-        mode: 0600
-        state: directory
-      with_items: "{{ groups['db'] }}"
-
-    - name: add cluster configuration
-      template:
-        src: etc/kubernetes/kubeadm-config.yml.j2
-        dest: "{{ db.wd.remote }}/{{ item }}/kubeadm-config.yml"
-        force: yes
-      vars:
-        host: "{{ item }}"
-      with_items: "{{ groups['db'] }}"
-
-    - name: generate certificate authority
-      command: "kubeadm init phase certs etcd-ca --config={{ db.wd.remote }}/{{ ansible_host }}/kubeadm-config.yml"
-    
-    - name: "generate certificates"
-      include_tasks: tls.yml
-      vars:
-        remote_directory: "{{ db.wd.remote }}/{{ host }}"
-        local_directory: "{{ db.wd.local }}/{{ host }}"
-      with_items: "{{ groups['db'] }}"
-      loop_control:
-        loop_var: host
-    
-    - name: remove generated directories
-      file:
-        path: /etc/kubernetes
-        state: absent
-
-  vars:
-    tls_server: "{{ groups['db'][0] }}"
-
-- name: "distribute certificates archive"
-  copy:
-    src: "{{ db.wd.local }}/{{ ansible_host }}.tar"
-    dest: "/tmp/{{ ansible_host }}.tar"
-
-- name: "uncompress certificates archive"
-  unarchive:
-    src: "/tmp/{{ ansible_host }}.tar"
-    dest: "/tmp/"
-    remote_src: yes
-
-- name: "create required directories"
+- name: create required directories
   file:
     path: /etc/kubernetes
     state: directory
     mode: 0755
 
-- name: "move certificates"
-  copy:
-    src: "/tmp/{{ ansible_host }}/"
-    dest: "/etc/kubernetes/"
-    remote_src: yes
+- name: add cluster configuration
+  template:
+    src: etc/kubernetes/kubeadm-config.yml.j2
+    dest: /etc/kubernetes/kubeadm-config.yml
+    force: yes
 
-- name: "create manifests"
-  command: "kubeadm init phase etcd local --config=/etc/kubernetes/kubeadm-config.yml"
+- run_once: yes
+  block:
+
+  - name: generate certificate authority
+    command: "kubeadm init phase certs etcd-ca --config=/etc/kubernetes/kubeadm-config.yml"
+  
+  - name: compress certificates directory
+    archive:
+      path: /etc/kubernetes/pki
+      dest: /tmp/pki.tar
+      format: tar
+  
+  - name: download certificates archive
+    fetch:
+      src: /tmp/pki.tar
+      dest: "{{ db.wd }}/pki.tar"
+      flat: yes
+
+- name: register certificate directory
+  stat:
+    path: /etc/kubernetes/pki
+  register: certificate_directory
+
+- block:
+
+  - name: distribute certificates archive
+    copy:
+      src: "{{ db.wd }}/pki.tar"
+      dest: /tmp/pki.tar
+
+  - name: uncompress certificates archive
+    unarchive:
+      src: /tmp/pki.tar
+      dest: /tmp/
+      remote_src: yes
+
+  - name: move certificates
+    copy:
+      src: /tmp/pki
+      dest: /etc/kubernetes/
+      remote_src: yes
+  
+  when: not certificate_directory.stat.exists
+
+- name: generate certs
+  command: "kubeadm init phase certs {{ item }} --config=/etc/kubernetes/kubeadm-config.yml"
+  with_items:
+  - etcd-server
+  - etcd-peer
+  - etcd-healthcheck-client
+  - apiserver-etcd-client
+
+- name: create manifests
+  command: kubeadm init phase etcd local --config=/etc/kubernetes/kubeadm-config.yml
+
+- name: delete temporary resources
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /tmp/pki.tar
+    - /tmp/pki
